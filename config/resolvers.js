@@ -12,7 +12,27 @@ async function getOne(collectionName, param) {
     const db = app.mongo.db;
     const collection = db.collection(collectionName);
     const result = await collection.find().toArray();
-    const filterResult = result.filter((item) => item._id.toString() === param.id)
+    const filterResult = result.filter((item) => item._id.toString() === param.id);
+
+    return filterResult[0]
+}
+
+async function hasMany(collectionName, param) {
+    console.log(param._id.toString)
+    const db = app.mongo.db;
+    const collection = db.collection(collectionName);
+    const result = await collection.find().toArray();
+    const filterResult = result.filter((item) => item.userId.toString() === param._id.toString());
+
+    return filterResult
+}
+
+async function belongsTo(collectionName, param) {
+    console.log(param)
+    const db = app.mongo.db;
+    const collection = db.collection(collectionName);
+    const result = await collection.find().toArray();
+    const filterResult = result.filter((item) => item._id.toString() === param.userId.toString());
 
     return filterResult[0]
 }
@@ -27,27 +47,37 @@ export const resolvers = {
         users() {
             return getAll("users")
         },
-        async products() {
+        products() {
             return getAll("products")
         },
-        async orders() {
+        orders() {
             return getAll("orders")
         },
-        async ordersProducts() {
+        ordersProducts() {
             return getAll("orders_products")
         },
         //Get One
-        async user(_, args) {
+        user(_, args) {
             return getOne("users", args)
         },
-        async product(_, args) {
+        product(_, args) {
             return getOne("products", args)
         },
-        async order(_, args) {
+        order(_, args) {
             return getOne("orders", args)
         },
-        async orderProduct(_, args) {
+        orderProduct(_, args) {
             return getOne("orders_products", args)
         },
+    },
+    User: {
+        orders(parent) {
+            return hasMany("orders",parent)
+        }
+    },
+    Order: {
+        user(parent) {
+            return belongsTo("users",parent)
+        }
     }
   }

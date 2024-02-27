@@ -3,6 +3,7 @@ export const schema = `
         _id: ID!
         name: String!
         address: String!
+        orders: [Order]
     }
     
     type Product {
@@ -14,7 +15,7 @@ export const schema = `
     
     type Order {
         _id: ID!
-        userId: User!
+        user: User!
         totalPrice: Int!
         createdAt: String!
         updatedAt: String!
