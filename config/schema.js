@@ -11,6 +11,7 @@ export const schema = `
         name: String!
         unity: Int!
         quantity: Int!
+        orders: [OrderProduct!]!
     }
     
     type Order {
@@ -24,8 +25,8 @@ export const schema = `
     
     type OrderProduct {
         _id: ID!
-        orderId: Order!
-        productId: Product!
+        order: Order!
+        product: Product!
         quantity: Int!
     }
 

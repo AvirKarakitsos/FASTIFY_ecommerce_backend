@@ -18,21 +18,48 @@ async function getOne(collectionName, param) {
 }
 
 async function hasMany(collectionName, param) {
-    console.log(param._id.toString)
     const db = app.mongo.db;
     const collection = db.collection(collectionName);
     const result = await collection.find().toArray();
-    const filterResult = result.filter((item) => item.userId.toString() === param._id.toString());
+    let filterResult = null
+    
+    switch(collectionName) {
+        case "orders": 
+            filterResult = result.filter((item) => item.userId.toString() === param._id.toString());
+            break;
+        // case "orders":
+        //     filterResult = result.filter((item) => item.orderId.toString() === param._id.toString());
+        //     break;
+        case "orders_products":
+            if(param.name) filterResult = result.filter((item) => item.productId.toString() === param._id.toString());
+            else filterResult = result.filter((item) => item.orderId.toString() === param._id.toString());
+            break;
+        default:
+            filterResult = []
+    }
 
     return filterResult
 }
 
 async function belongsTo(collectionName, param) {
-    console.log(param)
     const db = app.mongo.db;
     const collection = db.collection(collectionName);
     const result = await collection.find().toArray();
-    const filterResult = result.filter((item) => item._id.toString() === param.userId.toString());
+    let filterResult = null
+    
+    switch(collectionName) {
+        case "users": 
+            filterResult = result.filter((item) => item._id.toString() === param.userId.toString());
+            break;
+        case "orders":
+            filterResult = result.filter((item) => item._id.toString() === param.orderId.toString());
+            break;
+        case "products":
+            filterResult = result.filter((item) => item._id.toString() === param.productId.toString());
+            break;
+        default:
+            filterResult = []
+    }
 
     return filterResult[0]
 }
@@ -78,6 +105,22 @@ export const resolvers = {
     Order: {
         user(parent) {
             return belongsTo("users",parent)
+        },
+        products(parent) {
+            return hasMany("orders_products",parent)
+        }
+    },
+    Product: {
+        orders(parent) {
+            return hasMany("orders_products",parent)
+        }
+    },
+    OrderProduct: {
+        order(parent) {
+            return belongsTo("orders",parent)
+        },
+        product(parent) {
+            return belongsTo("products",parent)
         }
     }
   }
