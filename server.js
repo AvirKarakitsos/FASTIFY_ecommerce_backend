@@ -1,13 +1,20 @@
 import fastify from 'fastify';
 import fastifyEnv from '@fastify/env';
 import fastifyMongoDB from '@fastify/mongodb';
+import fastifyCors from '@fastify/cors'
 import mercurius from 'mercurius';
 import { schema } from './config/schema.js';
 import { resolvers, setDatabase } from './config/resolvers.js';
 
 const app = fastify();
 
-// Utilise le plugin fastifyEnv pour charger les variables d'environnement
+app.register(fastifyCors, {
+  origin: true,
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+});
+
+
 app.register(fastifyEnv, {
   dotenv: true,
   schema: {
@@ -23,7 +30,6 @@ app.register(fastifyEnv, {
 
 await app
 
-// Ajoute le plugin @fastify/mongodb
 app.register(fastifyMongoDB, {
   url: app.config.DB_CONNECTION,
   database: "shop"
