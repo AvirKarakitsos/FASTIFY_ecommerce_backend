@@ -29,6 +29,9 @@ export const schema = `
         product: Product!
         quantity: Int!
     }
+    type Stripe {
+        url: String!
+    }
 
     type Query {
         users: [User],
@@ -39,5 +42,16 @@ export const schema = `
         product(id: ID!): Product,
         order(id: ID!): Order,
         orderProduct(id: ID!): OrderProduct,
+    }
+
+    type Mutation {
+        validOrder(order: [AddOrderInput!]!): Stripe
+    }
+
+    input AddOrderInput {
+        productId: String
+        name: String
+        unity: Int
+        quantity: Int
     }
 `
