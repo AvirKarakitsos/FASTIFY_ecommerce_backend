@@ -2,7 +2,7 @@
 export const configResolvers = (database) => {
     const db = database.mongo.db
 
-    async function  getAll(collectionName) {
+    async function getAll (collectionName) {
         const collection = db.collection(collectionName);
         const result = await collection.find().toArray();
         
@@ -12,7 +12,10 @@ export const configResolvers = (database) => {
     async function getOne(collectionName, param) {
         const collection = db.collection(collectionName);
         const result = await collection.find().toArray();
-        const filterResult = result.filter((item) => item._id.toString() === param.id);
+        let filterResult = null
+        
+        if(param.id) filterResult = result.filter((item) => item._id.toString() === param.id);
+        else if(param.email) filterResult = result.filter((item) => item.email === param.email);
 
         return filterResult[0]
     }
@@ -130,14 +133,25 @@ export const configResolvers = (database) => {
                             quantity: product.quantity
                         }
                     }),
-                    success_url: "http://localhost:5176/",
-                    cancel_url: "http://localhost:5176/error",
+                    success_url: "http://localhost:5173/",
+                    cancel_url: "http://localhost:5173/",
                     });
                 
                     return {url: session.url};
                 } catch (error) {
                     console.error('Erreur lors de la création de la session Checkout:', error);
                 }
+            },
+            async loginUser(_,args) {
+                const user = await getOne("users", args.user)
+                console.log(user)
+                if(!user) {
+                    return {token: "Error: email/password incorrects"}
+                } 
+                
+                const token = database.jwt.sign({ userId: user._id.toString() })
+                return { token }
+                
             }
         }
     }

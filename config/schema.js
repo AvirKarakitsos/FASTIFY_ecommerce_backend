@@ -1,8 +1,9 @@
 export const schema = `
     type User {
         _id: ID!
-        name: String!
-        address: String!
+        name: String
+        email: String!
+        address: String
         orders: [Order]
     }
     
@@ -29,8 +30,13 @@ export const schema = `
         product: Product!
         quantity: Int!
     }
+
     type Stripe {
         url: String!
+    }
+
+    type Token {
+        token: String!
     }
 
     type Query {
@@ -45,10 +51,15 @@ export const schema = `
     }
 
     type Mutation {
-        validOrder(order: [AddOrderInput!]!): Stripe
+        validOrder(order: [OrderInput!]!): Stripe,
+        loginUser(user: LoginInput): Token
     }
 
-    input AddOrderInput {
+    input LoginInput {
+        email: String!
+    }
+
+    input OrderInput {
         productId: String
         name: String
         unity: Int
