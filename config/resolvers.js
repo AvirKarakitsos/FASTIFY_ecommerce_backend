@@ -14,10 +14,11 @@ export const configResolvers = (database) => {
         const result = await collection.find().toArray();
         let filterResult = null
         
-        if(param.id) filterResult = result.filter((item) => item._id.toString() === param.id);
-        else if(param.email) filterResult = result.filter((item) => item.email === param.email);
+        if(param?.id) filterResult = result.filter((item) => item._id.toString() === param.id);
+        else if(param?.email) filterResult = result.filter((item) => item.email === param.email);
 
-        return filterResult[0]
+        if(!filterResult) return null
+        else return filterResult[0]
     }
 
     async function hasMany(collectionName, param) {
@@ -144,7 +145,6 @@ export const configResolvers = (database) => {
             },
             async loginUser(_,args) {
                 const user = await getOne("users", args.user)
-                console.log(user)
                 if(!user) {
                     return {token: "Error: email/password incorrects"}
                 } 

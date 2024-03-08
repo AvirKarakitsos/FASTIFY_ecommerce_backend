@@ -65,8 +65,8 @@ app.register(mercurius,{
   schema,
   resolvers: configResolvers(app),
   context: (request, reply) => {
-    if(!request.headers.user) return {}
-    return {userId: request.headers.user}
+    if(!request.headers.token) return {}
+    return {userId: request.headers.token}
   }
 })
   
