@@ -3,64 +3,80 @@ export const configResolvers = (database) => {
     const db = database.mongo.db
 
     async function getAll (collectionName) {
-        const collection = db.collection(collectionName);
-        const result = await collection.find().toArray();
-        
-        return result
+        try {
+            const collection = db.collection(collectionName);
+            const result = await collection.find().toArray();
+            
+            return result
+        } catch(err) {
+            console.error("Error message: "+err)
+        }
     }
 
     async function getOne(collectionName, param) {
-        const collection = db.collection(collectionName);
-        const result = await collection.find().toArray();
-        let filterResult = null
-        
-        if(param?.id) filterResult = result.filter((item) => item._id.toString() === param.id);
-        else if(param?.email) filterResult = result.filter((item) => item.email === param.email);
+        try {
+            const collection = db.collection(collectionName);
+            const result = await collection.find().toArray();
+            let filterResult = null
+            
+            if(param?.id) filterResult = result.filter((item) => item._id.toString() === param.id);
+            else if(param?.email) filterResult = result.filter((item) => item.email === param.email);
 
-        if(!filterResult) return null
-        else return filterResult[0]
+            if(!filterResult) return null
+            else return filterResult[0]
+        } catch(err) {
+            console.error("Error message: "+err)
+        }
     }
 
     async function hasMany(collectionName, param) {
-        const collection = db.collection(collectionName);
-        const result = await collection.find().toArray();
-        let filterResult = null
-        
-        switch(collectionName) {
-            case "orders": 
-                filterResult = result.filter((item) => item.userId.toString() === param._id.toString());
-                break;
-            case "orders_products":
-                if(param.name) filterResult = result.filter((item) => item.productId.toString() === param._id.toString());
-                else filterResult = result.filter((item) => item.orderId.toString() === param._id.toString());
-                break;
-            default:
-                filterResult = []
+        try {
+            const collection = db.collection(collectionName);
+            const result = await collection.find().toArray();
+            let filterResult = null
+            
+            switch(collectionName) {
+                case "orders": 
+                    filterResult = result.filter((item) => item.userId.toString() === param._id.toString());
+                    break;
+                case "orders_products":
+                    if(param.name) filterResult = result.filter((item) => item.productId.toString() === param._id.toString());
+                    else filterResult = result.filter((item) => item.orderId.toString() === param._id.toString());
+                    break;
+                default:
+                    filterResult = []
+            }
+    
+            return filterResult
+        } catch(err) {
+            console.error("Error message: "+err)
         }
-
-        return filterResult
     }
 
     async function belongsTo(collectionName, param) {
-        const collection = db.collection(collectionName);
-        const result = await collection.find().toArray();
-        let filterResult = null
-        
-        switch(collectionName) {
-            case "users": 
-                filterResult = result.filter((item) => item._id.toString() === param.userId.toString());
-                break;
-            case "orders":
-                filterResult = result.filter((item) => item._id.toString() === param.orderId.toString());
-                break;
-            case "products":
-                filterResult = result.filter((item) => item._id.toString() === param.productId.toString());
-                break;
-            default:
-                filterResult = []
+        try {
+            const collection = db.collection(collectionName);
+            const result = await collection.find().toArray();
+            let filterResult = null
+            
+            switch(collectionName) {
+                case "users": 
+                    filterResult = result.filter((item) => item._id.toString() === param.userId.toString());
+                    break;
+                case "orders":
+                    filterResult = result.filter((item) => item._id.toString() === param.orderId.toString());
+                    break;
+                case "products":
+                    filterResult = result.filter((item) => item._id.toString() === param.productId.toString());
+                    break;
+                default:
+                    filterResult = []
+            }
+    
+            return filterResult[0]
+        } catch(err) {
+            console.error("Error message: "+err)
         }
-
-        return filterResult[0]
     }
 
     const resolvers = {
@@ -119,38 +135,47 @@ export const configResolvers = (database) => {
             }
         },
         Mutation: {
-            async validOrder(_, args) {
+            async validOrder(_, args, context) {
                 try {
+                    const {reply, userId} = context
+        
+                    if(!userId) return reply.code(401).send({ message: 'Unauthorized' });
+                    
                     const session = await database.stripe.checkout.sessions.create({
                         payment_method_types: ['card'],
                         mode: 'payment',
                         line_items: args.order.map(product => {
-                        return {
-                            price_data: {
-                                currency: 'usd',
-                                product_data: {name: product.name},
-                                unit_amount: product.unity
-                            },
-                            quantity: product.quantity
-                        }
-                    }),
-                    success_url: "http://localhost:5173/",
-                    cancel_url: "http://localhost:5173/",
+                            return {
+                                price_data: {
+                                    currency: 'usd',
+                                    product_data: {name: product.name},
+                                    unit_amount: product.unity
+                                },
+                                quantity: product.quantity
+                            }
+                        }),
+                        success_url: "http://localhost:5173/",
+                        cancel_url: "http://localhost:5173/",
                     });
                 
                     return {url: session.url};
+
                 } catch (error) {
                     console.error('Erreur lors de la création de la session Checkout:', error);
                 }
             },
             async loginUser(_,args) {
-                const user = await getOne("users", args.user)
-                if(!user) {
-                    return {token: "Error: email/password incorrects"}
-                } 
-                
-                const token = database.jwt.sign({ userId: user._id.toString() })
-                return { token }
+                try {
+                    const user = await getOne("users", args.user)
+                    if(!user) {
+                        throw new Error("error 400: unauthorized")
+                    } 
+                    
+                    const token = database.jwt.sign({ userId: user._id })
+                    return { token }
+                } catch(err) {
+                    console.error("Error message: "+err)
+                }
                 
             }
         }

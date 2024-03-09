@@ -49,7 +49,7 @@ await app
 app.register(fastifyJwt, {
   secret: app.config.JWT_KEY,
   sign: {
-    expiresIn: '3m'
+    expiresIn: '1h'
   }
 })
 
@@ -65,8 +65,13 @@ app.register(mercurius,{
   schema,
   resolvers: configResolvers(app),
   context: (request, reply) => {
-    if(!request.headers.token) return {}
-    return {userId: request.headers.token}
+    const token = request.headers.authorization?.split(" ")[1]
+    if(!token) return {userId: null, reply}
+    else {
+      const decodeToken = app.jwt.verify(token)
+
+      return { userId: decodeToken, reply }
+    }
   }
 })
   
