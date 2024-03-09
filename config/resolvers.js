@@ -95,8 +95,22 @@ export const configResolvers = (database) => {
                 return getAll("orders_products")
             },
             //Get One
-            user(_, args) {
-                return getOne("users", args)
+            // user(_, args) {
+            //     return getOne("users", args)
+            // },
+            async user(_, args, context) {
+                try {
+                    const collection = db.collection("users");
+                    const result = await collection.find().toArray();
+                    let filterResult = null
+                    console.log(context.userId)
+                    if(context.userId) filterResult = result.filter((item) => item._id.toString() === context.userId);
+                   
+                    if(!filterResult) return null
+                    else return filterResult[0]
+                } catch(err) {
+                    console.error("Error message: "+err)
+                }
             },
             product(_, args) {
                 return getOne("products", args)

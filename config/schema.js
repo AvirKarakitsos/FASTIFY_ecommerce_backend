@@ -44,7 +44,7 @@ export const schema = `
         products: [Product],
         orders: [Order],
         ordersProducts: [OrderProduct],
-        user(id: ID!): User,
+        user: User,
         product(id: ID!): Product,
         order(id: ID!): Order,
         orderProduct(id: ID!): OrderProduct,

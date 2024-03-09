@@ -70,7 +70,7 @@ app.register(mercurius,{
     else {
       const decodeToken = app.jwt.verify(token)
 
-      return { userId: decodeToken, reply }
+      return { userId: decodeToken.userId, reply }
     }
   }
 })
