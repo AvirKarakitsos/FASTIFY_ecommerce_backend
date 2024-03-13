@@ -101,7 +101,7 @@ export const configResolvers = (database) => {
 					const collection = db.collection("users");
 					const result = await collection.find().toArray();
 					let filterResult = null
-					console.log(context.userId)
+					
 					if(context.userId) filterResult = result.filter((item) => item._id.toString() === context.userId);
 					
 					if(!filterResult) return null
@@ -168,8 +168,8 @@ export const configResolvers = (database) => {
 								quantity: product.quantity,
 							}
 						}),
-						success_url: "http://localhost:5173/",
-						cancel_url: "http://localhost:5173/"
+						success_url: `${database.config.CLIENT_URL}/success`,
+						cancel_url: `${database.config.CLIENT_URL}/errorpayment`
 						});
 
 					const paymentsCollection = db.collection("payments")

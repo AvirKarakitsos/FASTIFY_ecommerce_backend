@@ -22,7 +22,7 @@ app.register(fastifyEnv, {
 	dotenv: true,
 	schema: {
 		type: 'object',
-		required: ['DB_CONNECTION','SECRET_KEY','JWT_KEY'],
+		required: ['DB_CONNECTION','SECRET_KEY','JWT_KEY','CLIENT_URL'],
 		properties: {
 				DB_CONNECTION: {
 				type: 'string',
@@ -31,6 +31,9 @@ app.register(fastifyEnv, {
 				type: 'string',
 			},
 			JWT_KEY: {
+				type: 'string',
+			},
+			CLIENT_URL: {
 				type: 'string',
 			},
 		}
@@ -126,16 +129,6 @@ app.post('/webhook', async (request, reply) => {
 	} catch(err) {
 		console.error(err);
 	}
-})
-
-app.get("/res",async(req,res) => {
-	const session = await app.stripe.checkout.sessions.retrieve(
-		"cs_test_b1LGwsstlymFZwKrzBvNsD7rfdM87DMBw8EK7KW7XajVHNph6y65jc5Kzr",
-		{
-			expand: ['line_items'],
-		}
-	);
-	res.send({res: session})
 })
 	
 // Démarre le serveur Fastify
