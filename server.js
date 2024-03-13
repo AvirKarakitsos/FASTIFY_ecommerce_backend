@@ -77,83 +77,66 @@ app.register(mercurius,{
 
 await app
 
-app.post('/webhook', (request, reply) => {
-	const event = request.body;
-	
-	switch (event.type) {
-		case 'payment_intent.succeeded':
-			console.log("Here")
-			console.log(event)
-			const paymentIntent = event;
-			console.log(paymentIntent.data.object)
-			// Then define and call a method to handle the successful payment intent.
-			// handlePaymentIntentSucceeded(paymentIntent);
-			break;
-		case 'payment_intent.canceled':
-			const paymentIntentCanceled = event.data.object;
-			// Then define and call a function to handle the event payment_intent.canceled
-			break;
-		case 'payment_method.attached':
-			const paymentMethod = event.data.object;
-			// Then define and call a method to handle the successful attachment of a PaymentMethod.
-			// handlePaymentMethodAttached(paymentMethod);
-			break;
-		// ... handle other event types
-		default:
-			console.log(`Unhandled event type ${event.type}`);
-	}
-
-	// Return a response to acknowledge receipt of the event
-	reply.send({event: "succed"})
-})
-
-app.get("/res", async (req, rep) => {
+app.post('/webhook', async (request, reply) => {
 	try {
-		const payments_in_progress = {
-			sessionId: "cs_test_b1qMFfYE4lO4SRnYJJ66iOepZHcaSsWyLm6ooNwzne1ZZ1w2AL0iuLYGbZ",
-			userId: "65ddc19ab2a2c36b28f5992e"
+		const event = request.body;
+		if (event.type === 'checkout.session.completed') {
+			
+			const checkout_session = event.data.object;
+
+			const session = await app.stripe.checkout.sessions.retrieve(
+				checkout_session.id,
+				{
+					expand: ['line_items'],
+				}
+			);
+
+			const paymentsCollection = app.mongo.db.collection("payments")
+			const user = await paymentsCollection.findOne({sessionId: checkout_session.id})
+
+			const addOrder = {
+				userId: new ObjectId(user.userId),
+				totalPrice: session.amount_total,
+				createdAt: new Date(),
+				updatedAt: new Date()
+			}
+	
+			const ordersCollection = app.mongo.db.collection("orders")
+			
+			const newOrder = await ordersCollection.insertOne(addOrder)
+			
+			
+			const order_productCollection = app.mongo.db.collection("orders_products")
+			const allProducts = await app.mongo.db.collection("products").find().toArray()
+			
+			const newProducts = session.line_items.data.map((newProduct) => {
+				const filterProduct = allProducts.filter(product => product.name === newProduct.description)
+				
+				return {
+					orderId: newOrder.insertedId,
+					productId: filterProduct[0]._id,
+					quantity: newProduct.quantity
+				}
+			})
+			
+			await order_productCollection.insertMany(newProducts)
 		}
 		
-		const session = await app.stripe.checkout.sessions.retrieve(
-			payments_in_progress.sessionId,
-			{
-				expand: ['line_items'],
-			}
-		);
-
-		const addOrder = {
-			userId: new ObjectId(payments_in_progress.userId),
-			totalPrice: session.amount_total,
-			createdAt: new Date(),
-			updatedAt: new Date()
-		}
-
-		const ordersCollection = app.mongo.db.collection("orders")
-		
-		const newOrder = await ordersCollection.insertOne(addOrder)
-		
-		
-		const order_productCollection = app.mongo.db.collection("orders_products")
-		const allProducts = await app.mongo.db.collection("products").find().toArray()
-		
-		const newProducts = session.line_items.data.map((newProduct) => {
-			const filterProduct = allProducts.filter(product => product.name === newProduct.description)
-	
-			return {
-				orderId: newOrder.insertedId,
-				productId: filterProduct[0]._id,
-				quantity: newProduct.quantity
-			}
-		})
-		
-		await order_productCollection.insertMany(newProducts)
-	
+		reply.send({event: "fin"})
 	} catch(err) {
 		console.error(err);
 	}
-	rep.send({event: "finished"})
 })
 
+app.get("/res",async(req,res) => {
+	const session = await app.stripe.checkout.sessions.retrieve(
+		"cs_test_b1LGwsstlymFZwKrzBvNsD7rfdM87DMBw8EK7KW7XajVHNph6y65jc5Kzr",
+		{
+			expand: ['line_items'],
+		}
+	);
+	res.send({res: session})
+})
 	
 // Démarre le serveur Fastify
 const start = async () => {

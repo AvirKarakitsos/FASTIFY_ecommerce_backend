@@ -161,17 +161,23 @@ export const configResolvers = (database) => {
 								price_data: {
 									currency: 'usd',
 									product_data: {
-											name: product.name
+											name: product.name,
 									},
 									unit_amount: product.unity
 								},
 								quantity: product.quantity,
 							}
 						}),
-							success_url: "http://localhost:5173/",
-							cancel_url: "http://localhost:5173/"
+						success_url: "http://localhost:5173/",
+						cancel_url: "http://localhost:5173/"
 						});
-			
+
+					const paymentsCollection = db.collection("payments")
+					await paymentsCollection.insertOne({
+						sessionId: session.id,
+						userId: userId 
+					})
+						
 					return {url: session.url};
 
 				} catch (error) {
