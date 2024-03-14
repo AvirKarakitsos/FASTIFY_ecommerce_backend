@@ -96,19 +96,9 @@ export const configResolvers = (database) => {
 				return getAll("orders_products")
 			},
 			//Get One
-			async user(_, args, context) {
-				try {
-					const collection = db.collection("users");
-					const result = await collection.find().toArray();
-					let filterResult = null
-					
-					if(context.userId) filterResult = result.filter((item) => item._id.toString() === context.userId);
-					
-					if(!filterResult) return null
-					else return filterResult[0]
-				} catch(err) {
-						console.error("Error message: "+err)
-				}
+			user(_, args, context) {
+				const param = {id: context.userId}
+				return getOne("users", param)
 			},
 			product(_, args) {
 				return getOne("products", args)
@@ -162,21 +152,17 @@ export const configResolvers = (database) => {
 									currency: 'usd',
 									product_data: {
 											name: product.name,
+											metadata: {productId: product.productId}
 									},
 									unit_amount: product.unity
 								},
 								quantity: product.quantity,
 							}
 						}),
+						metadata: {userId: userId},
 						success_url: `${database.config.CLIENT_URL}/success`,
 						cancel_url: `${database.config.CLIENT_URL}/errorpayment`
 						});
-
-					const paymentsCollection = db.collection("payments")
-					await paymentsCollection.insertOne({
-						sessionId: session.id,
-						userId: userId 
-					})
 						
 					return {url: session.url};
 

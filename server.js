@@ -83,6 +83,7 @@ await app
 app.post('/webhook', async (request, reply) => {
 	try {
 		const event = request.body;
+
 		if (event.type === 'checkout.session.completed') {
 			
 			const checkout_session = event.data.object;
@@ -90,15 +91,15 @@ app.post('/webhook', async (request, reply) => {
 			const session = await app.stripe.checkout.sessions.retrieve(
 				checkout_session.id,
 				{
-					expand: ['line_items'],
+					expand: ['line_items','line_items.data.price.product'],
 				}
 			);
+			console.log(session.line_items.data[0].price.product.metadata)
+			console.log(session.metadata)
 
-			const paymentsCollection = app.mongo.db.collection("payments")
-			const user = await paymentsCollection.findOne({sessionId: checkout_session.id})
-
+			// Add one order in database
 			const addOrder = {
-				userId: new ObjectId(user.userId),
+				userId: new ObjectId(session.metadata.userId),
 				totalPrice: session.amount_total,
 				createdAt: new Date(),
 				updatedAt: new Date()
@@ -113,7 +114,7 @@ app.post('/webhook', async (request, reply) => {
 			const allProducts = await app.mongo.db.collection("products").find().toArray()
 			
 			const newProducts = session.line_items.data.map((newProduct) => {
-				const filterProduct = allProducts.filter(product => product.name === newProduct.description)
+				const filterProduct = allProducts.filter(product => product._id.toString() === newProduct.price.product.metadata.productId)
 				
 				return {
 					orderId: newOrder.insertedId,
