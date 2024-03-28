@@ -97,8 +97,7 @@ export const configResolvers = (database) => {
 			},
 			//Get One
 			user(_, args, context) {
-				const param = {id: context.userId}
-				return getOne("users", param)
+				return getOne("users", {id: context.userId})
 			},
 			product(_, args) {
 				return getOne("products", args)
