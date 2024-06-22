@@ -14,11 +14,6 @@ API graphQL pour un site de commerce, codé avec Node JS et le framework Fastify
 
 Afin d'installer toutes les librairies
 
-
-### `Créer un dossier images`
-
-Créer un dossier *images* à la racine de votre répertoire où seront stockées les images en local.
-
 ### `Créer un fichier .env`
 
 Créer un fichier .env afin de stocker vos propres variables d'environnement.  
@@ -29,7 +24,6 @@ SECRET_KEY=*votre clé secrète Stripe, commançant par: sk_test_...*
 JWT_KEY=*générer une clé secrète pour le token. Vous pouvez utiliser la commande sur node : require('crypto').randomBytes(64).toString("hex")*  
 CLIENT_URL=*URL du client. Exemple: http://localhost:5173*
 
-### `nodemon serve`
+### `npm run dev`
 
-Commande globale afin de lancer le serveur.  
-Penser à installer nodemon en dependance de développement avec la commande *npm install --save-dev nodemon*
+Une version de Node 18.11 minimmum est requise (utilisation du flag --watch)
