@@ -1,6 +1,7 @@
 ## Description
 
-API graphQL pour un site de commerce, codé avec Node JS et le framework Fastify. Les données sont stockées sur MongoDB Atlas.
+API graphQL pour un site de e-commerce, codé avec Node JS et le framework Fastify. Les données sont stockées sur MongoDB Atlas.  
+Cette API est utilisée côté client ici: https://github.com/AvirKarakitsos/REACT_ecommerce_frontend
 
 **Tags**: *GraphQL, Fastify, MongoDB*
 
